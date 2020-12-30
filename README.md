@@ -1,2 +1,2 @@
-# go-wasm-webgl
+# wasp: A go-wasm-webgl
 A small personal webgl engine in Go on WASM

@@ -1,0 +1,3 @@
+.vscode
+examples/*.wasm
+examples/wasm_exec.js
