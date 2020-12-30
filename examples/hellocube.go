@@ -11,12 +11,6 @@ import (
 	"github.com/schabby/linalg"
 )
 
-/*
-var gl = webgl.RenderingContext{
-	Loaded: true,
-	Js:     js.Value{},
-}*/
-
 var gl webgl.RenderingContext
 
 var program *wasp.Program
@@ -28,8 +22,6 @@ var viewMatrix = linalg.NewMatrix4()
 var projectionMatrix = linalg.NewMatrix4()
 
 func main() {
-	dom.Log("Hello, world!")
-	dom.CreateElement("div", "", &dom.Body)
 	canvas := dom.FullPageCanvas()
 
 	done := make(chan struct{}, 0)
