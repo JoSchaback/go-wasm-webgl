@@ -1,5 +1,6 @@
 package wasp
 
+// NewCube creates a standard 1x1x1 cube as a mesh.
 func NewCube() *Mesh {
 	mesh := NewMesh(POSITION, NORMAL, RGB, UV)
 	// floor
