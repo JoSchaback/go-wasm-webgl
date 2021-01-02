@@ -13,4 +13,4 @@ var UV = AttribType{name: "UV", size: 2}
 var NORMAL = AttribType{name: "NORMAL", size: 3}
 
 func (c AttribType) Name() string { return c.name }
-func (c AttribType) Size() uint32 { return c.size }
+func (c AttribType) Size() int    { return c.size }
