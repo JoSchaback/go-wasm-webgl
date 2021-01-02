@@ -1,5 +1,6 @@
 package wasp
 
+// AttribType names vertex components for binding mesh / buffer data with the approproate attrib pointers in the shaders
 type AttribType struct {
 	name string
 	size int
