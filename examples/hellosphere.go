@@ -56,7 +56,6 @@ func main() {
 
 	mesh := wasp.NewSphere(2)
 
-	dom.Log("hinter Mesh erstellen. Beginne mit Upload")
 	dpr := js.Global().Get("window").Get("devicePixelRatio").Float()
 	rect := canvas.JsValue().Call("getBoundingClientRect")
 	width := int(rect.Get("width").Float() * dpr)

@@ -53,17 +53,7 @@ func main() {
 	program = wasp.NewProgram(&gl, vsSource, fsSource)
 	program.AttribTypes["aVertexPosition"] = wasp.POSITION
 	program.AttribTypes["aVertexColor"] = wasp.RGB
-	/*
-		mesh = wasp.NewMesh(wasp.POSITION, wasp.RGB)
-		upperLeft := mesh.AddVertex(0, -1, 0, 0, 0, 1)
-		upperRight := mesh.AddVertex(1, -1, 0, 0, 1, 0)
-		lowerLeft := mesh.AddVertex(0, 0, 0, 1, 0, 0)
-		lowerRight := mesh.AddVertex(1, 0, 0, 1, 1, 0)
-		mesh.AddFace(upperRight, upperLeft, lowerRight)
-		mesh.AddFace(upperLeft, lowerLeft, lowerRight) */
 	mesh := wasp.NewCube()
-	//	mesh.AddFace(upperRight, lowerLeft, lowerRight)
-	//	mesh.AddFace(upperRight, lowerLeft, upperLeft)
 	dom.Log("hinter Mesh erstellen. Beginne mit Upload")
 	dpr := js.Global().Get("window").Get("devicePixelRatio").Float()
 	rect := canvas.JsValue().Call("getBoundingClientRect")
