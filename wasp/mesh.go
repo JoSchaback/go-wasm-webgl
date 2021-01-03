@@ -2,6 +2,7 @@ package wasp
 
 import (
 	"fmt"
+	"math"
 	"syscall/js"
 
 	"./webgl"
@@ -32,6 +33,115 @@ func NewMesh(attribTypes ...AttribType) *Mesh {
 	return &mesh
 }
 
+// SubdivideFace replaces a face with three smaller faces.
+func (c *Mesh) SubdivideFace(faceIndex int) {
+	// take each face, subdivide it, register the new vertices and new faces and throw the old
+	// face out
+
+	//				   v0
+	//				   /\
+	//				  /  \
+	//				 /    \
+	//		 v0Tov1 /------\ v2tov0
+	//			   /\      /\
+	//			  /  \    /  \
+	//			 /    \  /    \
+	//		  v1 ------\/------ v2
+	//               v1tov2
+	//fmt.Printf("subdividing faceIndex %d, vertexSize; %d\n", faceIndex, c.vertexSize)
+	//fmt.Printf("faces: %v\n", c.faces)
+
+	// create new vertices at the intersection between the existing vertices
+	v0tov1 := make([]float32, c.vertexSize)
+	v1tov2 := make([]float32, c.vertexSize)
+	v2tov0 := make([]float32, c.vertexSize)
+
+	v0VerID := c.faces[faceIndex+0]
+	v1VerID := c.faces[faceIndex+1]
+	v2VerID := c.faces[faceIndex+2]
+
+	//fmt.Printf("v0VerIndex: %v\n", v0VerID)
+	//fmt.Printf("v1VerIndex: %v\n", v1VerID)
+	//fmt.Printf("v2VerIndex: %v\n", v2VerID)
+
+	// get existing vertices
+	v0 := c.VertexByID(v0VerID)
+	v1 := c.VertexByID(v1VerID)
+	v2 := c.VertexByID(v2VerID)
+
+	//fmt.Printf("v0: %v\n", v0)
+	//fmt.Printf("v1: %v\n", v1)
+	//fmt.Printf("v2: %v\n", v2)
+
+	// the coordinates of the new vertices are in the middle of the existing vertices.
+	// We interpolate ALL components intentionally since most components are interpolatable
+	// such as RGB, UV, NORMAL etc.
+	for i := 0; i < c.vertexSize; i++ {
+		//fmt.Printf("i %d, %v ---- %v\n", i, v0tov1, v0)
+		v0tov1[i] = (v0[i] + v1[i]) / 2
+		v1tov2[i] = (v1[i] + v2[i]) / 2
+		v2tov0[i] = (v2[i] + v0[i]) / 2
+	}
+	colorOffset := c.Offset(RGB)
+	v0tov1[colorOffset] = 0
+	v0tov1[colorOffset+1] = 1
+	v0tov1[colorOffset+2] = 0
+
+	v1tov2[colorOffset] = 1
+	v1tov2[colorOffset+1] = 0
+	v1tov2[colorOffset+2] = 0
+
+	v2tov0[colorOffset] = 1
+	v2tov0[colorOffset+1] = 0
+	v2tov0[colorOffset+2] = 1
+
+	v0tov1Id := uint16(c.VertexCount() + 0)
+	v1tov2Id := uint16(c.VertexCount() + 1)
+	v2tov0Id := uint16(c.VertexCount() + 2)
+
+	/*
+		fmt.Printf("c.VertexCount(): %d\n", c.VertexCount())
+		fmt.Printf("v0tov1Id: %d\n", v0tov1Id)
+		fmt.Printf("v1tov2Id: %d\n", v1tov2Id)
+		fmt.Printf("v2tov0Id: %d\n", v2tov0Id) */
+
+	c.vertices = append(c.vertices, v0tov1...)
+	c.vertices = append(c.vertices, v1tov2...)
+	c.vertices = append(c.vertices, v2tov0...)
+
+	//fmt.Printf("c.VertexCount() after appending: %d, len %d\n", c.VertexCount(), len(c.vertices))
+
+	// lower left triangle
+	c.AddFace(v1VerID, v1tov2Id, v0tov1Id)
+
+	// upper triangle
+	c.AddFace(v0VerID, v0tov1Id, v2tov0Id)
+
+	// lower right triangle
+	c.AddFace(v1tov2Id, v2VerID, v2tov0Id)
+
+	// middle triangle
+	c.AddFace(v0tov1Id, v1tov2Id, v2tov0Id)
+
+	c.RemoveFace(faceIndex)
+}
+
+func (c *Mesh) VertexByIndex(vertexIndex int) []float32 {
+	return c.vertices[vertexIndex : vertexIndex+c.vertexSize]
+}
+
+func (c *Mesh) VertexByID(vertexID uint16) []float32 {
+	return c.vertices[int(vertexID)*c.vertexSize : (int(vertexID)*c.vertexSize)+c.vertexSize]
+}
+
+func (c *Mesh) VertexFromFaceId(vertexIndex uint16) []float32 {
+	return c.vertices[int(vertexIndex) : int(vertexIndex)+c.vertexSize]
+}
+
+func (c *Mesh) RemoveFace(faceIndex int) {
+	c.faces = append(c.faces[:faceIndex], c.faces[faceIndex+3:]...)
+}
+
 func (c *Mesh) AddVertex(vertex ...float32) uint16 {
 	if len(vertex) != c.vertexSize {
 		panic(fmt.Sprintf("AddVertex: %d parameters provided, but vertexSize is %d", len(vertex), c.vertexSize))
@@ -51,6 +161,17 @@ func (c *Mesh) FaceCount() int {
 }
 
 func (c *Mesh) AddFace(vertexId1 uint16, vertexId2 uint16, vertexId3 uint16) {
+	maxVertexCount := uint16(len(c.vertices) / c.vertexSize)
+	if vertexId1 >= maxVertexCount || vertexId1 < 0 {
+		panic(fmt.Sprintf("vertexId1 %d is out of bounds (maxVertexCount %d)", vertexId1, c.vertexSize))
+	}
+	if vertexId2 >= maxVertexCount || vertexId2 < 0 {
+		panic(fmt.Sprintf("vertexId2 %d is out of bounds (maxVertexCount %d)", vertexId2, c.vertexSize))
+	}
+	if vertexId3 >= maxVertexCount || vertexId3 < 0 {
+		panic(fmt.Sprintf("vertexId3 %d is out of bounds (maxVertexCount %d)", vertexId3, c.vertexSize))
+	}
+
 	c.faces = append(c.faces, vertexId1, vertexId2, vertexId3)
 }
 
@@ -78,7 +199,33 @@ func (c *Mesh) Offset(attribType AttribType) int {
 		}
 		offset += int(t.size)
 	}
-	return 0
+	panic(fmt.Sprintf("mesh does not contain AttribType %v", attribType))
+}
+
+func (c *Mesh) ForEachVertex(vFunc func([]float32)) {
+	for i := 0; i < len(c.vertices); i += c.vertexSize {
+		vFunc(c.vertices[i:(i + c.vertexSize)])
+	}
+}
+
+func (c *Mesh) ForEachFace(vFunc func([]uint16)) {
+	for i := 0; i < len(c.faces); i += 3 {
+		vFunc(c.faces[i:(i + 3)])
+	}
+}
+
+func (c *Mesh) NormalizeAll(attrib AttribType) {
+	offset := c.Offset(attrib)
+	for i := offset; i < len(c.vertices); i += c.vertexSize {
+		squaredSum := float64(0)
+		for p := 0; p < attrib.size; p++ {
+			squaredSum += float64(c.vertices[i+p] * c.vertices[i+p])
+		}
+		squared := float32(math.Sqrt(squaredSum))
+		for p := 0; p < attrib.size; p++ {
+			c.vertices[i+p] /= squared
+		}
+	}
 }
 
 func (c *Mesh) UploadVerticesToNewBuffer(gl *webgl.RenderingContext) js.Value {
