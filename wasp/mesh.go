@@ -48,8 +48,6 @@ func (c *Mesh) SubdivideFace(faceIndex int) {
 	//			 /    \  /    \
 	//		  v1 ------\/------ v2
 	//               v1tov2
-	//fmt.Printf("subdividing faceIndex %d, vertexSize; %d\n", faceIndex, c.vertexSize)
-	//fmt.Printf("faces: %v\n", c.faces)
 
 	// create new vertices at the intersection between the existing vertices
 	v0tov1 := make([]float32, c.vertexSize)
@@ -60,18 +58,10 @@ func (c *Mesh) SubdivideFace(faceIndex int) {
 	v1VerID := c.faces[faceIndex+1]
 	v2VerID := c.faces[faceIndex+2]
 
-	//fmt.Printf("v0VerIndex: %v\n", v0VerID)
-	//fmt.Printf("v1VerIndex: %v\n", v1VerID)
-	//fmt.Printf("v2VerIndex: %v\n", v2VerID)
-
 	// get existing vertices
 	v0 := c.VertexByID(v0VerID)
 	v1 := c.VertexByID(v1VerID)
 	v2 := c.VertexByID(v2VerID)
-
-	//fmt.Printf("v0: %v\n", v0)
-	//fmt.Printf("v1: %v\n", v1)
-	//fmt.Printf("v2: %v\n", v2)
 
 	// the coordinates of the new vertices are in the middle of the existing vertices.
 	// We interpolate ALL components intentionally since most components are interpolatable
@@ -82,6 +72,9 @@ func (c *Mesh) SubdivideFace(faceIndex int) {
 		v1tov2[i] = (v1[i] + v2[i]) / 2
 		v2tov0[i] = (v2[i] + v0[i]) / 2
 	}
+
+	// we are setting some freaky colors, mainly for debugging
+	// purposes.
 	colorOffset := c.Offset(RGB)
 	v0tov1[colorOffset] = 0
 	v0tov1[colorOffset+1] = 1
@@ -99,17 +92,9 @@ func (c *Mesh) SubdivideFace(faceIndex int) {
 	v1tov2Id := uint16(c.VertexCount() + 1)
 	v2tov0Id := uint16(c.VertexCount() + 2)
 
-	/*
-		fmt.Printf("c.VertexCount(): %d\n", c.VertexCount())
-		fmt.Printf("v0tov1Id: %d\n", v0tov1Id)
-		fmt.Printf("v1tov2Id: %d\n", v1tov2Id)
-		fmt.Printf("v2tov0Id: %d\n", v2tov0Id) */
-
 	c.vertices = append(c.vertices, v0tov1...)
 	c.vertices = append(c.vertices, v1tov2...)
 	c.vertices = append(c.vertices, v2tov0...)
-
-	//fmt.Printf("c.VertexCount() after appending: %d, len %d\n", c.VertexCount(), len(c.vertices))
 
 	// lower left triangle
 	c.AddFace(v1VerID, v1tov2Id, v0tov1Id)
