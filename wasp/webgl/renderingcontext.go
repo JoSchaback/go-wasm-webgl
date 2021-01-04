@@ -277,6 +277,16 @@ func (c *RenderingContext) UniformMatrix4fvCustom(location js.Value, m *linalg.M
 	//c.Js.Call("uniformMatrix4fv", location, transpose, SliceToFloat32Array(data), srcOffset, srcLength)
 }
 
+func (c *RenderingContext) UniformMatrix3fvCustom(location js.Value, m *linalg.Matrix3) {
+	js.Global().Call("uniformMatrix3fv", c.Js, location, m.M_0_0, m.M_0_1, m.M_0_2, m.M_1_0, m.M_1_1, m.M_1_2, m.M_2_0, m.M_2_1, m.M_2_2)
+	//c.Js.Call("uniformMatrix4fv", location, transpose, SliceToFloat32Array(data), srcOffset, srcLength)
+}
+
+func (c *RenderingContext) Uniform3f(location js.Value, f1, f2, f3 float32) {
+	//c.Js.Call("bufferData", target /* js.TypedArrayOf(srcData)*/, srcData, usage)
+	c.Js.Call("uniform3f", location, f1, f2, f3)
+}
+
 func (c *RenderingContext) BufferData(target uint32, srcData []float32, usage uint32) {
 	//c.Js.Call("bufferData", target /* js.TypedArrayOf(srcData)*/, srcData, usage)
 	c.Js.Call("bufferData", target, SliceToFloat32Array(srcData), usage)

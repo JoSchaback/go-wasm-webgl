@@ -31,8 +31,23 @@ func (c *Program) UniformMatrix4fv(name string, m *linalg.Matrix4) {
 	c.gl.UniformMatrix4fvCustom(loc, m)
 }
 
+func (c *Program) UniformMatrix3fv(name string, m *linalg.Matrix3) {
+	loc := c.uniforms[name]
+	c.gl.UniformMatrix3fvCustom(loc, m)
+}
+
+func (c *Program) Uniform3f(name string, f1, f2, f3 float32) {
+	loc := c.uniforms[name]
+	c.gl.Uniform3f(loc, f1, f2, f3)
+}
+
+func (c *Program) UniformVector3(name string, v linalg.Vector3) {
+	loc := c.uniforms[name]
+	c.gl.Uniform3f(loc, v.X, v.Y, v.Z)
+}
+
 // NewProgram creates a new Program instance by compiling the provided shaders
-func NewProgram(gl *webgl.RenderingContext, vertexShaderSource string, fragmentShaderSource string) *Program {
+func NewProgram(gl *webgl.RenderingContext, vertexShaderSource, fragmentShaderSource string) *Program {
 	vertexShader := createShader(gl, webgl.VERTEX_SHADER, vertexShaderSource)
 	fragmentShader := createShader(gl, webgl.FRAGMENT_SHADER, fragmentShaderSource)
 	gl.CheckForError()

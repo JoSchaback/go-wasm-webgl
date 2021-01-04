@@ -193,6 +193,13 @@ func (c *Mesh) ForEachVertex(vFunc func([]float32)) {
 	}
 }
 
+func (c *Mesh) ForEachVertexComponent(attribType AttribType, vFunc func([]float32)) {
+	offset := c.Offset(attribType)
+	for i := 0; i < len(c.vertices); i += c.vertexSize {
+		vFunc(c.vertices[i+offset : (i + offset + attribType.size)])
+	}
+}
+
 func (c *Mesh) ForEachFace(vFunc func([]uint16)) {
 	for i := 0; i < len(c.faces); i += 3 {
 		vFunc(c.faces[i:(i + 3)])
