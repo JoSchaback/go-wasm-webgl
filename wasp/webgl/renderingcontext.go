@@ -259,8 +259,42 @@ func (c *RenderingContext) CreateBuffer() js.Value {
 	return c.Js.Call("createBuffer")
 }
 
+func (c *RenderingContext) CreateTexture() js.Value {
+	return c.Js.Call("createTexture")
+}
+
+func (c *RenderingContext) TexImage2DImage(
+	target uint32,
+	level int,
+	internalFormat uint32,
+	format uint32,
+	texType uint32,
+	texImageSource js.Value) {
+	c.Js.Call("texImage2D", target, level, internalFormat, format, texType, texImageSource)
+}
+
+func (c *RenderingContext) TexImage2Duint8(
+	target uint32,
+	level int,
+	internalFormat uint32,
+	width, height int,
+	border int,
+	format uint32,
+	texType uint32,
+	array []uint8) {
+	c.Js.Call("texImage2D", target, level, internalFormat, width, height, border, format, texType, SliceToTypedArray(array))
+}
+
+func (c *RenderingContext) GenerateMipmap(target uint32) {
+	c.Js.Call("generateMipmap", target)
+}
+
 func (c *RenderingContext) BindBuffer(target uint32, buffer js.Value) {
 	c.Js.Call("bindBuffer", target, buffer)
+}
+
+func (c *RenderingContext) BindTexture(target uint32, texture js.Value) {
+	c.Js.Call("bindTexture", target, texture)
 }
 
 func (c *RenderingContext) BufferDataUInt16(target uint32, srcData []uint16, usage uint32) {
