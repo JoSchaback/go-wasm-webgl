@@ -1,35 +1,21 @@
 package main
 
 import (
-	"fmt"
-	"syscall/js"
-
 	"../wasp"
 	"../wasp/webgl"
 
-	dom "github.com/schabby/go-wasm-dom"
 	"github.com/schabby/linalg"
 )
-
-var gl webgl.RenderingContext
 
 var program *wasp.Program
 var vao1, vao2 *wasp.VertexArrayObject
 var angle float32 = 0
-var fsDraw js.Func
 
 var viewMatrix = linalg.NewMatrix4()
 var viewModelMatrix = linalg.NewMatrix4()
 var projectionMatrix = linalg.NewMatrix4()
 
-func main() {
-	canvas := dom.FullPageCanvas()
-
-	done := make(chan struct{}, 0)
-
-	glDOM := canvas.JsValue().Call("getContext", "webgl2")
-	gl = webgl.NewRenderingContext(glDOM)
-
+func myInit(gl webgl.RenderingContext) {
 	vsSource := `
 	attribute    vec3 a_position;
 	attribute    vec3 a_color;
@@ -103,6 +89,7 @@ func main() {
 	}`
 
 	program = wasp.NewProgram(&gl, vsSource, fsSource)
+	program.Use()
 	program.AttribTypes["a_position"] = wasp.POSITION
 	program.AttribTypes["a_color"] = wasp.RGB
 	program.AttribTypes["a_normal"] = wasp.NORMAL
@@ -129,24 +116,6 @@ func main() {
 	})
 	vao2 = wasp.NewVAO(&gl, mesh, program)
 
-	dpr := js.Global().Get("window").Get("devicePixelRatio").Float()
-	rect := canvas.JsValue().Call("getBoundingClientRect")
-	width := int(rect.Get("width").Float() * dpr)
-	height := int(rect.Get("height").Float() * dpr)
-	canvas.SetWidthI(width)
-	canvas.SetHeightI(height)
-	gl.Viewport(0, 0, width, height)
-
-	dom.Log(fmt.Sprintf("canvas is %d x %d", width, height))
-
-	projectionMatrix.Projection(45, float32(width), float32(height), 0.1, 100)
-	program.Use()
-	program.UniformMatrix4fv("u_projectionMatrix", &projectionMatrix)
-
-	gl.ClearColor(0, 0, 0, 1)
-
-	gl.Enable(webgl.DEPTH_TEST)
-
 	eye := linalg.Vector3{3, 3, 4}
 	center := linalg.Vector3{0, 0, 0}
 	up := linalg.Vector3{0, 0, 1}
@@ -160,43 +129,47 @@ func main() {
 	lightDirection.Normalize()
 	//dom.Logf("2 lightDirection: %v", lightDirection)
 	program.UniformVector3("u_lightDirInViewSpace", lightDirection) // in camera space!
-
-	fsDraw = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-
-		gl.Clear(webgl.COLOR_BUFFER_BIT | webgl.DEPTH_BUFFER_BIT)
-
-		viewModelMatrix.Set(viewMatrix)
-		program.UniformMatrix4fv("u_modelViewMatrix", &viewModelMatrix)
-		normalMatrix := linalg.Matrix3{}
-		normalMatrix.MakeNormalMatrix(viewModelMatrix)
-		program.UniformMatrix3fv("u_normalMatrix", &normalMatrix)
-
-		vao2.DrawElements()
-
-		rot := linalg.NewMatrix4()
-		rot.Rotation(angle, linalg.Vector3{0, 0, 1})
-		angle += 0.01
-
-		viewModelMatrix.Set(viewMatrix)
-		viewModelMatrix.MultAssign(&rot)
-
-		program.UniformMatrix4fv("u_modelViewMatrix", &viewModelMatrix)
-		normalMatrix.MakeNormalMatrix(viewModelMatrix)
-		program.UniformMatrix3fv("u_normalMatrix", &normalMatrix)
-
-		vao1.DrawElements()
-		js.Global().Call("requestAnimationFrame", fsDraw)
-		return nil
-	})
-
-	defer fsDraw.Release()
-
-	js.Global().Call("requestAnimationFrame", fsDraw)
-
-	<-done
+	gl.Enable(webgl.DEPTH_TEST)
+	gl.ClearColor(0, 0, 0, 1)
 }
 
-func printMessage(this js.Value, inputs []js.Value) interface{} {
-	fmt.Printf("Hello from within WASM")
-	return nil
+func resize(gl webgl.RenderingContext) {
+	width := gl.Width
+	height := gl.Height
+	gl.Viewport(0, 0, width, height)
+	projectionMatrix.Projection(45, float32(width), float32(height), 0.1, 100)
+	program.UniformMatrix4fv("u_projectionMatrix", &projectionMatrix)
+}
+
+func draw(gl webgl.RenderingContext, timestamp int) {
+	gl.Clear(webgl.COLOR_BUFFER_BIT | webgl.DEPTH_BUFFER_BIT)
+
+	viewModelMatrix.Set(viewMatrix)
+	program.UniformMatrix4fv("u_modelViewMatrix", &viewModelMatrix)
+	normalMatrix := linalg.Matrix3{}
+	normalMatrix.MakeNormalMatrix(viewModelMatrix)
+	program.UniformMatrix3fv("u_normalMatrix", &normalMatrix)
+
+	vao2.DrawElements()
+
+	rot := linalg.NewMatrix4()
+	rot.Rotation(angle, linalg.Vector3{0, 0, 1})
+	angle += 0.01
+
+	viewModelMatrix.Set(viewMatrix)
+	viewModelMatrix.MultAssign(&rot)
+
+	program.UniformMatrix4fv("u_modelViewMatrix", &viewModelMatrix)
+	normalMatrix.MakeNormalMatrix(viewModelMatrix)
+	program.UniformMatrix3fv("u_normalMatrix", &normalMatrix)
+
+	vao1.DrawElements()
+}
+
+func main() {
+	done := make(chan struct{}, 0)
+
+	wasp.CreateWebGLApp(myInit, resize, draw)
+
+	<-done
 }

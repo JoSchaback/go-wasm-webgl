@@ -12,11 +12,8 @@ import (
 
 // RenderingContext is a wrapper around the js.Value handle that holds the instance of the javascript-bound WebGL2RenderingContext.
 type RenderingContext struct {
-	//Loaded  bool
-	Js js.Value
-	//version uint
-
-	// Constant values
+	Js            js.Value
+	Width, Height int
 }
 
 func NewRenderingContext(value js.Value) RenderingContext {
