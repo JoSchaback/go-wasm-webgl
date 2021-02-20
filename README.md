@@ -15,7 +15,13 @@ There are currently three examples that demonstrate the usage of Wasp.
 
 ### Simple Cube Example
 The simple cube example in ``examples/simplecube.go`` shows a colored, rotating cube. It uses a very basic shader without lighting. 
+
 ![Wasp example showing simple rotating cube](https://github.com/schabby/go-wasm-webgl/raw/main/examples/simplecube.png "Wasp example showing simple rotating cube")
+
+### Simple Sphere Example
+The simple sphere example in ``examples/simplesphere.go`` shows a colored sphere without lighting.
+
+![Wasp example showing simple colored sphere](https://github.com/schabby/go-wasm-webgl/raw/main/examples/simplesphere.png "Wasp example showing simple colored sphere")
 
 
 ## How to build the examples:
