@@ -161,14 +161,7 @@ func (c *Mesh) AddFace(vertexId1 uint16, vertexId2 uint16, vertexId3 uint16) {
 }
 
 func (m *Mesh) Translate(x float32, y float32, z float32) {
-	offset := 0
-	for _, t := range m.attribTypes {
-		if t == POSITION {
-			break
-		} else {
-			offset += int(t.size)
-		}
-	}
+	offset := m.Offset(POSITION)
 	for i := offset; i < len(m.vertices); i += m.vertexSize {
 		m.vertices[i+0] += x
 		m.vertices[i+1] += y
