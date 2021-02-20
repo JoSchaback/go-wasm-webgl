@@ -23,6 +23,16 @@ The simple sphere example in ``examples/simplesphere.go`` shows a colored sphere
 
 ![Wasp example showing simple colored sphere](https://github.com/schabby/go-wasm-webgl/raw/main/examples/simplesphere.png "Wasp example showing simple colored sphere")
 
+### Simple Lighting Example
+The example in ``examples/simplelighting.go`` shows spheres with classical lighting shading. 
+
+![Wasp simple light shading example](https://github.com/schabby/go-wasm-webgl/raw/main/examples/simplelighting.png "Wasp example showing simple lighting shading")
+
+### Simple Texture Example
+The example in ``examples/simpletexture.go`` shows a crate with a textured mapped on its faces.
+
+![Wasp simple texturing example](https://github.com/schabby/go-wasm-webgl/raw/main/examples/simpletexture.png "Wasp example showing simple texturing")
+
 
 ## How to build the examples:
 While not strictly necessary, it may help to have some prior knowledge on WASM with Go. There are plenty
