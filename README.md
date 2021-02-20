@@ -1,7 +1,24 @@
 # wasp: WebGL2 utility lib in Go on WASM
 A small, stingy and light-weight (= little functionality) webgl2 layer in Go for WASM.
 
-How to build an example:
+Wasp comes with a small set of convenience structs and functions that easy the work
+with WebGL2. The main concepts are the following.
+- ``shader.go``: Common shader functionality such as loading, compiling shader sources as well as caching attributes and uniforms.
+- ``webglapp.go``: A setup for a fullpage WebGL2 application with ``requestAnimationFrame``, mouse events and resize callbacks. Reduces common boilerplate code on the application level.
+- ``mesh.go``: a simple data structure for manipulating triangle meshes and uploading to WebGL2 as interleaved VertexArrayObjects.
+- ``webgl/renderingcontext.go``: Wrapper for ``WebGl2RenderingContext`` in JavaScript for typesafety and convenience.
+
+Check out the examples in the ``examples`` folder for further research.
+
+## Examples
+There are currently three examples that demonstrate the usage of Wasp.
+
+### Simple Cube Example
+The simple cube example in ``examples/simplecube.go`` shows a colored, rotating cube. It uses a very basic shader without lighting. 
+![Wasp example showing simple rotating cube](https://github.com/schabby/go-wasm-webgl/raw/main/examples/simplecube.png "Wasp example showing simple rotating cube")
+
+
+## How to build the examples:
 While not strictly necessary, it may help to have some prior knowledge on WASM with Go. There are plenty
 of great tutorials out there which help you understand how Go and WASM work together.
 
